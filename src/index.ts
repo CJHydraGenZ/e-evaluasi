@@ -4,7 +4,22 @@ import { password as pwd } from "bun";
 const db = new Database("db.sqlite");
 
 // Membuat tabel jika belu
+db.run(`
+  CREATE TABLE IF NOT EXISTS items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+  )
+`);
 
+// Membuat tabel users jika belum ada
+db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    name TEXT NOT NULL
+  )
+`);
 const app = new Elysia()
   .get("/items", () => {
     const items = db.query("SELECT * FROM items").all();
