@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { Database } from "bun:sqlite";
 import { password as pwd } from "bun";
-
+import { cors } from "@elysiajs/cors";
 import { jwt } from "@elysiajs/jwt";
 import { authRoutes } from "./routes/auth";
 import { usersRoutes } from "./routes/users";
@@ -35,16 +35,18 @@ db.run(`
 db.run(`
   CREATE TABLE IF NOT EXISTS evaluasi (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tanggal DATE NOT NULL,
+    tanggal TEXT NOT NULL,
     kegiatan TEXT NOT NULL,
     kuantitas INTEGER NOT NULL,
-    jam_mulai TIME NOT NULL,
-    jam_selesai TIME NOT NULL,
-    verifikasi TEXT NOT NULL
+    jam_mulai TEXT NOT NULL,
+    jam_selesai TEXT NOT NULL,
+    verifikasi TEXT NOT NULL,
+    user_id INTEGER NOT NULL, -- Tambahkan kolom user_id
+    FOREIGN KEY(user_id) REFERENCES users(id)
   )
 `);
 const app = new Elysia()
-
+  .use(cors())
   .get("/", () => "Hallo bun")
   .use(authRoutes(db, pwd))
   .use(usersRoutes(db, pwd))

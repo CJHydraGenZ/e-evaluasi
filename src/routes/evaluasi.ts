@@ -18,9 +18,11 @@ export const evaluasiRoutes = (db: Database) =>
           // Atau sesuaikan dengan peran yang diizinkan
           return new Response("Forbidden", { status: 403 });
         }
-
+        const userId = payload.userId;
         // 2. Ambil data dari database
-        const evaluasiData = db.query("SELECT * FROM evaluasi").all();
+        const evaluasiData = db
+          .query("SELECT * FROM evaluasi WHERE user_id = ?")
+          .all(userId);
 
         // 3. Kembalikan data sebagai respons JSON
         return new Response(JSON.stringify(evaluasiData), {
@@ -38,10 +40,10 @@ export const evaluasiRoutes = (db: Database) =>
         console.log(context.cookie.auth?.value);
         const payload = await context.jwt.verify(context.cookie.auth?.value); // Handle potential null value from verify
         console.log(payload);
-
         if (!payload || payload.role !== "pegawai") {
           return new Response("Forbidden", { status: 403 });
         }
+        const userId = payload.userId;
 
         const {
           tanggal,
@@ -59,9 +61,22 @@ export const evaluasiRoutes = (db: Database) =>
           verifikasi: string;
         };
 
+        // db.run(
+        //   "INSERT INTO evaluasi (tanggal, kegiatan, kuantitas, jam_mulai, jam_selesai, verifikasi) VALUES (?, ?, ?, ?, ?, ?)",
+        //   [tanggal, kegiatan, kuantitas, jam_mulai, jam_selesai, verifikasi]
+        // );
+
         db.run(
-          "INSERT INTO evaluasi (tanggal, kegiatan, kuantitas, jam_mulai, jam_selesai, verifikasi) VALUES (?, ?, ?, ?, ?, ?)",
-          [tanggal, kegiatan, kuantitas, jam_mulai, jam_selesai, verifikasi]
+          "INSERT INTO evaluasi (tanggal, kegiatan, kuantitas, jam_mulai, jam_selesai, verifikasi, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)", // Tambahkan user_id
+          [
+            tanggal,
+            kegiatan,
+            kuantitas,
+            jam_mulai,
+            jam_selesai,
+            verifikasi,
+            userId,
+          ]
         );
 
         return { message: "Evaluasi created successfully" };
@@ -71,23 +86,11 @@ export const evaluasiRoutes = (db: Database) =>
     })
     .put(
       "/evaluasi/:id",
-      t.Object({
-        params: t.Object({
-          id: t.Number(),
-        }),
-        body: t.Object({
-          tanggal: t.String(),
-          kegiatan: t.String(),
-          kuantitas: t.Number(),
-          jam_mulai: t.String(),
-          jam_selesai: t.String(),
-          verifikasi: t.String(),
-        }),
-      }),
+
       async (context: any) => {
         try {
           const payload = await context.jwt.verify(context.cookie.auth?.value);
-
+          const userId = payload.userId;
           if (!payload || payload.role !== "pegawai") {
             return new Response("Forbidden", { status: 403 });
           }
@@ -104,8 +107,8 @@ export const evaluasiRoutes = (db: Database) =>
 
           const result = db.run(
             `UPDATE evaluasi 
-                  SET tanggal = ?, kegiatan = ?, kuantitas = ?, jam_mulai = ?, jam_selesai = ?, verifikasi = ?
-                  WHERE id = ?`,
+            SET tanggal = ?, kegiatan = ?, kuantitas = ?, jam_mulai = ?, jam_selesai = ?, verifikasi = ?
+            WHERE id = ? AND user_id = ?`, // Tambahkan kondisi user_id
             [
               tanggal,
               kegiatan,
@@ -114,6 +117,7 @@ export const evaluasiRoutes = (db: Database) =>
               jam_selesai,
               verifikasi,
               id,
+              userId,
             ]
           );
 
@@ -130,22 +134,21 @@ export const evaluasiRoutes = (db: Database) =>
     )
     .delete(
       "/evaluasi/:id",
-      t.Object({
-        params: t.Object({
-          id: t.Number(),
-        }),
-      }),
+
       async (context: any) => {
         try {
           const payload = await context.jwt.verify(context.cookie.auth?.value);
-
+          const userId = payload.userId;
           if (!payload || payload.role !== "pegawai") {
             return new Response("Forbidden", { status: 403 });
           }
 
           const { id } = context.params;
 
-          const result = db.run("DELETE FROM evaluasi WHERE id = ?", [id]);
+          const result = db.run(
+            "DELETE FROM evaluasi WHERE id = ? AND user_id = ?", // Tambahkan kondisi user_id
+            [id, userId]
+          );
 
           if (result.changes === 0) {
             return new Response("Evaluasi not found", { status: 404 });
