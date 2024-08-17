@@ -15,6 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-
+      - run: echo $JWT_SCRET
       - run: bun install
       - run: bun run dev
