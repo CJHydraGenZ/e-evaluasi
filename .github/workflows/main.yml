@@ -13,8 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - name: create env file
+        run: |
+          touch .env
+          echo JWT_SCRET=${{ secrets.JWT_SCRET }} >> .env
 
       - run: bun install
       - run: bun run dev
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
