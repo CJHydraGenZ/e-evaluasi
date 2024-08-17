@@ -5,6 +5,9 @@ on:
     branches: ["master"]
   pull_request:
     branches: ["master"]
+
+env:
+  JWT_SCRET: ${{secrets.JWT_SCRET}}
 jobs:
   my-job:
     name: e-evaluasi
@@ -15,5 +18,3 @@ jobs:
 
       - run: bun install
       - run: bun run dev
-    env:
-      GH_TOKEN: ${{ secrets.JWT_SCRET }}
