@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: ["master"]
 
-env:
-  JWT_SCRET: ${{secrets.JWT_SCRET}}
 jobs:
   my-job:
     name: e-evaluasi
@@ -15,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: echo $JWT_SCRET
+
       - run: bun install
       - run: bun run dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
